@@ -1,0 +1,52 @@
+name: buildAndPush
+on:
+  pull_request:
+    tags:
+      - "v*.*.*" 
+
+jobs:
+  deploy: 
+    runs-on: ubuntu-20.04
+    name: Build image and pull to registry
+    steps:
+     - uses: actions/checkout@v2
+       with:
+        fetch-depth: 0
+     - name: Set up Go      
+       uses: actions/setup-go@v2
+       with:
+        
+        go-version: 1.16.3
+      
+ 
+
+     - name: Get dependencies
+       run: |
+        go get -v -t -d ./...
+        if [ -f Gopkg.toml ]; then
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+            dep ensure
+        fi
+     - name: Build bin file
+       run: |
+        go build -v ./...
+        
+     - name: Set env
+       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+       
+     - name: login to registry
+       uses: docker/login-action@v1
+       with:
+        registry: cr.yandex
+        username: oauth
+        password: ${{ secrets.REGISTRY_TOKEN }}
+        
+  
+         
+     - name: build and push
+       id: docker_build
+       uses: docker/build-push-action@v2
+       with:
+        push: true
+        context: .
+        tags: cr.yandex/${{ secrets.REGISTRY_ID }}/data_source_driver:${{ env.RELEASE_VERSION }},cr.yandex/${{ secrets.REGISTRY_ID }}/data_source_driver:latest
