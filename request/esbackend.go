@@ -45,21 +45,21 @@ func (r *Requirement) translateToES() (res interface{}, err error) {
 	case "in":
 		res = map[string]interface{}{"terms": map[string]interface{}{fieldName: r.Operand.Spec}}
 	case "not in":
-		err = errors.New("Requirement.translateToES: operator not in will be implemented in v0.1")
+		err = errors.New("requirement.translateToES: operator not in will be implemented in v0.1")
 	case "ne":
-		err = errors.New("Requirement.translateToES: operator ne will be implemented in v0.1")
+		err = errors.New("requirement.translateToES: operator ne will be implemented in v0.1")
 	case "eq":
 		res = map[string]interface{}{"term": map[string]interface{}{fieldName: r.Operand.Spec}}
 	case "ge":
-		err = errors.New("Requirement.translateToES: operator ge will be implemented in v0.1")
+		err = errors.New("requirement.translateToES: operator ge will be implemented in v0.1")
 	case "le":
-		err = errors.New("Requirement.translateToES: operator le will be implemented in v0.1")
+		err = errors.New("requirement.translateToES: operator le will be implemented in v0.1")
 	case "gt":
-		err = errors.New("Requirement.translateToES: operator gt will be implemented in v0.1")
+		err = errors.New("requirement.translateToES: operator gt will be implemented in v0.1")
 	case "lt":
-		err = errors.New("Requirement.translateToES: operator lt will be implemented in v0.1")
+		err = errors.New("requirement.translateToES: operator lt will be implemented in v0.1")
 	default:
-		err = errors.New("Requirement.translateToES: unknown operator: " + r.Operator)
+		err = errors.New("requirement.translateToES: unknown operator: " + r.Operator)
 	}
 	return
 }

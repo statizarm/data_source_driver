@@ -105,16 +105,16 @@ func getFieldFromMap(m interface{}, f *Field) (interface{}, error) {
 	var err error
 	if f == nil {
 		return nil, errors.New("getFieldFromMap: expected field specifier")
-	} else {
-		switch mp := m.(type) {
-		case map[string]interface{}:
-			m = mp[f.Name]
-			if f.Child != nil {
-				m, err = getFieldFromMap(m, f.Child)
-			}
-		default:
-			err = fmt.Errorf("getFieldFromMap: expected map type, received: %v\n", reflect.TypeOf(m))
+	}
+
+	switch mp := m.(type) {
+	case map[string]interface{}:
+		m = mp[f.Name]
+		if f.Child != nil {
+			m, err = getFieldFromMap(m, f.Child)
 		}
+	default:
+		err = fmt.Errorf("getFieldFromMap: expected map type, received: %v", reflect.TypeOf(m))
 	}
 
 	return m, err
