@@ -3,5 +3,5 @@ WORKDIR $GOPATH/src/data_source_driver
 COPY . .
 RUN go mod download
 RUN go build -o main .
-EXPOSE 9
-CMD ["./main", "es", ":9"]
+EXPOSE 433
+CMD ["./main", ":433"]

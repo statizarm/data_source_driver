@@ -50,8 +50,6 @@ func simplifyRequirement(hookURL string, req *Requirement) error {
 	var e error
 
 	switch req.Operand.Type {
-	case "raw_value":
-		e = nil
 	case "request":
 		if req.Operand.Spec, e = getFieldFromRequest(hookURL, req.Operand.Spec, &req.Field); e == nil {
 			req.Operand.Type = "raw_value"
@@ -87,9 +85,8 @@ func getFieldFromRequest(hookURL string, req interface{}, f *Field) (interface{}
 func getFieldFromResult(res interface{}, f *Field) (interface{}, error) {
 	var err error
 
-	switch res.(type) {
+	switch s := res.(type) {
 	case []interface{}:
-		s := res.([]interface{})
 		for i, v := range s {
 			if s[i], err = getFieldFromMap(v, f); err != nil {
 				return nil, err
@@ -109,14 +106,14 @@ func getFieldFromMap(m interface{}, f *Field) (interface{}, error) {
 	if f == nil {
 		return nil, errors.New("getFieldFromMap: expected field specifier")
 	} else {
-		switch m.(type) {
+		switch mp := m.(type) {
 		case map[string]interface{}:
-			m = m.(map[string]interface{})[f.Name]
+			m = mp[f.Name]
 			if f.Child != nil {
 				m, err = getFieldFromMap(m, f.Child)
 			}
 		default:
-			err = errors.New(fmt.Sprintf("getFieldFromMap: expected map type, received: %v\n", reflect.TypeOf(m)))
+			err = fmt.Errorf("getFieldFromMap: expected map type, received: %v\n", reflect.TypeOf(m))
 		}
 	}
 
