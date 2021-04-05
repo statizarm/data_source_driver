@@ -1,0 +1,72 @@
+name: devFlow
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  linters:
+    runs-on: ubuntu-20.04
+    name: Linters
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: dev
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.3
+
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or latest to use the latest version
+          version: latest
+
+          # Optional: golangci-lint command line arguments.
+          args:   -c=./.golangci.yml --tests=false -v
+
+          # Optional: show only new issues if it's a pull request. The default value is false.
+          # only-new-issues: true
+
+          # Optional: if set to true then the action will use pre-installed Go.
+          skip-go-installation: false
+
+          # Optional: if set to true then the action don't cache or restore ~/go/pkg.
+          skip-pkg-cache: true
+
+          # Optional: if set to true then the action don't cache or restore ~/.cache/go-build.
+          skip-build-cache: true
+  build:
+    name: build bin
+    needs: linters
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: dev
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.3
+
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
+      - name: Build bin file
+        run: |
+          go build -v ./...

@@ -52,15 +52,14 @@ func getSourceFromESAns(r io.Reader) ([]byte, error) {
 }
 
 func getSource(jstr interface{}) interface{} {
-	switch jstr.(type) {
+	switch str := jstr.(type) {
 	case map[string]interface{}:
-		m := jstr.(map[string]interface{})
-		if v, ok := m["_source"]; ok == true {
+		if v, ok := str["_source"]; ok {
 			return v
 		}
 
 		res := make([]interface{}, 0)
-		for _, v := range m {
+		for _, v := range str {
 			if r := getSource(v); r != nil {
 				res = append(res, r)
 			}
@@ -75,7 +74,7 @@ func getSource(jstr interface{}) interface{} {
 		return res
 	case []interface{}:
 		var res = make([]interface{}, 0)
-		for _, v := range jstr.([]interface{}) {
+		for _, v := range str {
 			if r := getSource(v); r != nil {
 				res = append(res, r)
 			}

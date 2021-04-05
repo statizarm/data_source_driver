@@ -1,5 +1,5 @@
 package main
-//test
+
 import (
 	"encoding/json"
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/ProQSoftware/httputil"
 
@@ -20,29 +21,27 @@ type requestSender interface {
 }
 
 type handler func(w http.ResponseWriter, r *http.Request) error
+type getDataHandler func(w http.ResponseWriter, getReq *request.GetRequest) error
 
-var senderObj requestSender
+var senders = map[string]requestSender {
+	"es": sender.NewEsSender("http://10.128.190.49:9200/"),
+}
 
 func main() {
 
-	if len(os.Args) < 3 {
+	if len(os.Args) < 2 {
 		log.Fatal("too few args: first arg - source type (e.g. es), second arg - addr")
-	} else if len(os.Args) > 3 {
+	} else if len(os.Args) > 2 {
 		log.Fatal("too much args")
 	}
 
-	addr := os.Args[2]
-	bd := os.Args[1]
+	addr := os.Args[1]
 
-	switch bd {
-	case "es":
-		senderObj = sender.NewEsSender("http://10.128.190.49:9200/")
-	default:
-		log.Fatal("Unknown type")
+	for k, v := range senders {
+		http.Handle("/" + k, getDataHandler(v.SendGetDataRequest))
 	}
 
 	//обработчики
-	http.Handle("/"+bd, handler(Handler))
 	http.Handle("/status", handler(statusHandler))
 
 	log.Fatal(http.ListenAndServe(addr, nil))
@@ -55,29 +54,29 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Handler функция-обработчик для запроса
-func Handler(w http.ResponseWriter, r *http.Request) (err error) {
+func (h getDataHandler) ServeHTTP (w http.ResponseWriter, r *http.Request) {
 	var getReq request.GetRequest
+	var err error
 
 	if r.Method == "POST" {
-		if r.Header.Get("Content-Type") != "application/json" {
+		if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
 			err = httputil.NewError(http.StatusUnsupportedMediaType, "text/html", "Expected JSON")
-			return
-		}
-
-		if wholeReqBody, e := ioutil.ReadAll(r.Body); e != nil {
+		} else if wholeReqBody, e := ioutil.ReadAll(r.Body); e != nil {
 			err = httputil.NewError(http.StatusBadRequest, "text/html", e.Error())
 		} else if e = json.Unmarshal(wholeReqBody, &getReq); e != nil {
 			errmsg := fmt.Sprintf(`Unknown type of request:\n%senderObj`, wholeReqBody)
 			err = httputil.NewError(http.StatusBadRequest, "text/html", errmsg)
 		} else {
-			err = senderObj.SendGetDataRequest(w, &getReq)
+			err = h(w, &getReq)
 		}
 	} else {
-		http.Error(w, "Wrong method", http.StatusMethodNotAllowed)
+		err = httputil.NewError(http.StatusMethodNotAllowed, "test/html",
+			`Method "`+r.Method+`" not allowed`)
 	}
 
-	return
+	if err != nil {
+		httputil.WriteHttpError(w, err)
+	}
 }
 
 //статус работоспособности драйвера
