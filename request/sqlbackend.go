@@ -11,27 +11,25 @@ func (f Field) getSQLName() string {
 }
 
 // UnifiedRequestToSql method. Transforms a UnifiedRequest structure into a full SQL statement.
-func (u GetRequest) translateToSQLSpecificForm() string {
-	var req string
+func translateToSQLSpecificForm (s *simplifiedRequest) (req string, err error) {
 	var fields string
 
 	req = "SELECT "
 
-	if len(u.Fields) == 0 {
+	if len(s.Fields) == 0 {
 		fields = "*"
 	} else {
-		for _, i := range u.Fields {
+		for _, i := range s.Fields {
 			fields += i.getSQLName()
-			if i != u.Fields[len(u.Fields)-1] {
+			if i != s.Fields[len(s.Fields)-1] {
 				fields += ", "
 			}
-
 		}
 	}
 
-	req += fields + " FROM " + u.Source + " WHERE " + u.Requirements.translateToSQL()
+	req += fields + " FROM " + s.Source + " WHERE " + s.ReqExpr.translateToSQL()
 
-	return req
+	return
 }
 
 // translateToSQL method. Transforms a RequirementExpression into an SQL condition (after WHERE)
