@@ -18,3 +18,9 @@ func TranslateToESForm(req *GetRequest) (io.Reader, error) {
 		return bytes.NewReader(b), nil
 	}
 }
+
+// TranslateToSQLForm function to translate unified get request to sql get search request
+func TranslateToSQLForm(req *GetRequest) (string, error) {
+	s := req.translateToSQLSpecificForm()
+	return s, nil
+}
