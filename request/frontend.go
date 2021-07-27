@@ -14,6 +14,7 @@ type simplifiedRequest struct {
 	ReqExpr   *RequirementExpression
 	Modifiers []map[string]json.RawMessage
 	Fields    []Field
+	Source    string
 }
 
 func translateToSimpleForm(req *GetRequest) (*simplifiedRequest, error) {
